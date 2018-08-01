@@ -18,11 +18,15 @@ import Message.MessageProcessor.MessageProcessor;
 import Message.MessageProcessor.MessageProcessorCollection;
 import Message.RoomMessage.*;
 import Message.VisitorMessage.MTouch;
+import javafx.concurrent.Task;
 
 import javax.swing.*;
+import javax.swing.plaf.PanelUI;
 import java.awt.*;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyNotifier,UpdateUINotifier,ClientConfigHolder,ControlConfigChangeNotifier {
@@ -33,14 +37,13 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
     private MsgThreadAsyn msgThreadAsyn;
     public RoomPanel(EnterLobbyNotifier enterLobbyNotifier, LoginSuccessNotifier loginSuccessNotifier, ClientConfig clientConfig, RoomState roomState,MsgThreadAsyn msgThreadAsyn){
         System.out.println("RoomPanel Build Start");
-        msgThreadAsyn.setObjThreadAsynHolder(this);
         this.enterLobbyNotifier=enterLobbyNotifier;
         this.loginSuccessNotifier=loginSuccessNotifier;
         this.clientConfig=clientConfig;
         this.roomState=roomState;
-        this.msgThreadAsyn=msgThreadAsyn;
         initView();
     }
+
     private ChatPanel chatPanel;
     private GridDisplayPanel gridDisplayPanel;
     private OptionPanel optionPanel;
@@ -52,10 +55,16 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
     private JButton roomStateButton=new ColoredButton("房间信息",new Color(255, 161, 21),10,10,Color.WHITE);
     private JButton scoreButton=new ColoredButton("玩家信息",new Color(15, 27, 163),10,10,Color.WHITE);
     private JButton musicButton=new ColoredButton("其他选项",new Color(22, 248, 9),10,10,Color.WHITE);
+
+
+
+    private JSplitPane leftPanel;
+    private JSplitPane rightPanel;
+    private JSplitPane splitPane;
     private void initView(){
         System.out.println("RoomPanel InitView Start");
         chatPanel=new ChatPanel(this,this);
-        gridDisplayPanel=new GridDisplayPanel(null,this,clientConfig.getAccount(),gameControlConfig);
+        gridDisplayPanel=new GridDisplayPanel(null,this,clientConfig,gameControlConfig);
         optionPanel=new OptionPanel(gameControlConfig,this,this,this,this);
         scorePanel=new ScorePanel(this);
         roomStatePanel=new RoomStatePanel(roomState,this,this);
@@ -72,31 +81,14 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
         groupPanel.insertMember(2,0,musicPanel);
         groupPanel.expandGroup(2);
 
-        JSplitPane leftPanel=new JSplitPane(JSplitPane.VERTICAL_SPLIT,false,gridDisplayPanel,optionPanel);
-        JSplitPane rightPanel=new JSplitPane(JSplitPane.VERTICAL_SPLIT,false,groupPanel,chatPanel);
-        JSplitPane splitPane=new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,false,leftPanel,rightPanel);
+        leftPanel=new JSplitPane(JSplitPane.VERTICAL_SPLIT,false,gridDisplayPanel,optionPanel);
+        rightPanel=new JSplitPane(JSplitPane.VERTICAL_SPLIT,false,groupPanel,chatPanel);
+        splitPane=new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,false,leftPanel,rightPanel);
 
 
         setLayout(new GridLayout(1,1));
         add(splitPane);
         splitPane.setVisible(true);
-        enterLobbyNotifier.frameUpdate(gridDisplayPanel);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while(RoomPanel.this.getWidth()==0){
-                        TimeUnit.MILLISECONDS.sleep(50);
-                    }
-                    leftPanel.setDividerLocation(0.8);
-                    rightPanel.setDividerLocation(0.7);
-                    splitPane.setDividerLocation(0.8);
-                }catch (Exception ex){
-                    ex.printStackTrace();
-                }
-                System.out.println("RoomPanel Divider set Done");
-            }
-        }).start();
 
         System.out.println("RoomPanel Build Done");
     }
@@ -113,22 +105,38 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
 
     @Override
     public void toSendObj(Message message) {
-        msgThreadAsyn.sendMsg(message);
+        if(msgThreadAsyn!=null)
+            msgThreadAsyn.sendMsg(message);
     }
 
     private boolean afterFinish=false;
+    public void  wakeUp(MsgThreadAsyn msgThreadAsyn){
+        if(msgThreadAsyn!=null){
+            msgThreadAsyn.setObjThreadAsynHolder(this);
+        }
+        afterFinish=false;
+        leftPanel.setDividerLocation(0.8);
+        rightPanel.setDividerLocation(0.7);
+        splitPane.setDividerLocation(0.8);
+        this.msgThreadAsyn = msgThreadAsyn;
+        msgThreadAsyn.sendMsg(new MReady(clientConfig.getAccount(),clientConfig.getValidateCode(),false));
+        System.out.println("RoomPanel wakeup split Done");
+
+    }
     public void finish(){
         if(afterFinish)
             System.out.println("Finish Twice");
         afterFinish=true;
-        msgThreadAsyn.finish();
-        try{
-            if(!msgThreadAsyn.getSocket().isClosed()) {
-                System.err.println("try release");
-                msgThreadAsyn.getSocket().close();
+        if(msgThreadAsyn!=null) {
+            msgThreadAsyn.finish();
+            try {
+                if (!msgThreadAsyn.getSocket().isClosed()) {
+                    System.err.println("try release");
+                    msgThreadAsyn.getSocket().close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
-        }catch (IOException ex){
-            ex.printStackTrace();
         }
         gridDisplayPanel.removeEngine();
         optionPanel.finish();
@@ -147,12 +155,15 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
     }
 
     @Override
-    public void frameUpdate(JComponent nextFocus) {
-        enterLobbyNotifier.frameUpdate(nextFocus);
-    }
-    @Override
-    public synchronized void frameUpdateSycn(JComponent nextFocus){
-        enterLobbyNotifier.frameUpdateSycn(nextFocus);
+    public void frameUpdate(FutureTask<Void> task) {
+        enterLobbyNotifier.frameUpdate(new FutureTask<>(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                task.run();
+                gridDisplayPanel.requestFocus();
+                return null;
+            }
+        }));
     }
 
     private MessageProcessorCollection messageProcessorCollection=new MessageProcessorCollection()
@@ -165,6 +176,7 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
                     optionPanel.notifyReadyDone(mRoomStateBroadcast.playerStates.get(clientConfig.getAccount()).getOnlineState()==PlayerState.OnlineState.READY);
                     if(roomStatePanel!=null)
                         roomStatePanel.notifyRoomStateUpdated();
+
                 }
             })
             .install(new MessageProcessor(MConnect.class) {
@@ -200,7 +212,7 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
                             gridDisplayPanel.removeEngine();
                             chatPanel.notifyResult(mEnd.gameResult);
                             optionPanel.notifyEnd();
-                            enterLobbyNotifier.frameUpdate(RoomPanel.this);
+                            enterLobbyNotifier.frameUpdate(null);
                             System.out.println("MEnd Process Done");
                             new GameResultReportMessageBox(mEnd.gameResult).run();
                         }

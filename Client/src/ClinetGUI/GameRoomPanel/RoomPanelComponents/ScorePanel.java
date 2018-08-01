@@ -50,6 +50,10 @@ public class ScorePanel  extends JPanel {
         this.updateUINotifier=updateUINotifier;
     }
     public synchronized void updateScorePanel(MRoomStateBroadcast mRoomStateBroadcast){
+        if(!mRoomStateBroadcast.playerStates.keySet().equals(playerLabelHashtable.keySet())){
+            doUpdate(mRoomStateBroadcast);
+            return;
+        }
         for(String account:mRoomStateBroadcast.roomState.players){
             if(!playerLabelHashtable.containsKey(account)){
                 doUpdate(mRoomStateBroadcast);
@@ -65,21 +69,21 @@ public class ScorePanel  extends JPanel {
         }
     }
     private synchronized void doUpdate(MRoomStateBroadcast mRoomStateBroadcast){
-
+        MRoomStateBroadcast local=mRoomStateBroadcast;
         System.out.println("\033[1;33mupdate ScorePanel\033[0m");
         playerLabelHashtable.clear();
         removeAll();
         setLayout(new GridLayout(0,1));
         JPanel top=new JPanel(new GridLayout(0,1));
-        for(String account:mRoomStateBroadcast.roomState.players){
-            System.out.println(account+":Score:"+mRoomStateBroadcast.playerGameStates.get(account).getScore()+",Life:"+mRoomStateBroadcast.playerGameStates.get(account).getLife());
-            playerLabelHashtable.put(account,new PlayerLabel(mRoomStateBroadcast.playerStates.get(account),mRoomStateBroadcast.playerGameStates.get(account)));
+        for(String account:local.roomState.players){
+            System.out.println(account+":Score:"+local.playerGameStates.get(account).getScore()+",Life:"+local.playerGameStates.get(account).getLife());
+            playerLabelHashtable.put(account,new PlayerLabel(local.playerStates.get(account),local.playerGameStates.get(account)));
             top.add(playerLabelHashtable.get(account));
         }
-        for(String account:mRoomStateBroadcast.roomState.viewers){
-            top.add(new JLabel(mRoomStateBroadcast.playerStates.get(account).formatToHTML()));
+        for(String account:local.roomState.viewers){
+            top.add(new JLabel(local.playerStates.get(account).formatToHTML()));
         }
-        for(int i=mRoomStateBroadcast.roomState.players.size();i<mRoomStateBroadcast.roomState.getRoomConfig().getGameConfig().getMaxPlayer();i++){
+        for(int i=local.roomState.players.size();i<local.roomState.getRoomConfig().getGameConfig().getMaxPlayer();i++){
             top.add(new PlayerLabel());
         }
         add(new JScrollPane(top));

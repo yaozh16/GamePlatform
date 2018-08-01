@@ -44,7 +44,12 @@ public class RoomStatePanel extends JPanel {
     public synchronized void notifyRoomStateUpdated(){
         if(roomState.getRoomStateType().equals(RoomState.RoomStateType.Free)){
             System.out.println("\033[1;32mRoomStateInit\033[0m");
-            content.onInit();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    content.onInit();
+                }
+            }).start();
         }else {
             System.out.println("\033[1;32mRoomStateStart\033[0m");
             content.onStart();

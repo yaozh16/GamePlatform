@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 //Singleton
 public class ServerDB implements Serializable{
@@ -34,102 +35,103 @@ public class ServerDB implements Serializable{
 
 
     private Hashtable<String,Pair<String,LocalDateTime>> validateCodeStorage=new Hashtable<>();
-    private Lock validateCodeLock=new ReentrantLock();
+    private ReentrantReadWriteLock validateCodeLock=new ReentrantReadWriteLock();
     public String generateValidateCode(String account){
-        validateCodeLock.lock();
         try {
+            validateCodeLock.writeLock().lock();
             byte[] buffer = new byte[20];
             r.nextBytes(buffer);
             String validateCode = String.valueOf(buffer);
             validateCodeStorage.put(account, new Pair<>(validateCode, LocalDateTime.now()));
             return validateCode;
         }finally {
-            validateCodeLock.unlock();
+            validateCodeLock.writeLock().unlock();
         }
     }
     public boolean validateCodeCheck(String account,String validateCode){
-        validateCodeLock.lock();
         try {
+
+            validateCodeLock.readLock().lock();
             Pair<String, LocalDateTime> entry = validateCodeStorage.get(account);
             if (entry == null)
                 return false;
             return entry.getKey().equals(validateCode);
         }finally {
-            validateCodeLock.unlock();
+            validateCodeLock.readLock().unlock();
         }
     }
 
 
     private Hashtable<String,String> accountPasswordStorage=new Hashtable<>();
-    private Lock accountPasswordLock=new ReentrantLock();
+    private ReentrantReadWriteLock accountPasswordLock=new ReentrantReadWriteLock();
     public boolean accountExistenceCheck(String account){
-        accountPasswordLock.lock();
+        accountPasswordLock.readLock().lock();
         try{
             return accountPasswordStorage.containsKey(account);
         }finally {
-            accountPasswordLock.unlock();
+            accountPasswordLock.readLock().unlock();
         }
     }
     public boolean accountPasswordCheck(String account,String password){
-        accountPasswordLock.lock();
+        accountPasswordLock.readLock().lock();
         try{
             return accountPasswordStorage.containsKey(account)&&accountPasswordStorage.get(account).equals(password);
         }finally {
-            accountPasswordLock.unlock();
+            accountPasswordLock.readLock().unlock();
         }
     }
     public boolean signupAccount(String account,String password){
-        accountPasswordLock.lock();
+        accountPasswordLock.writeLock().lock();
         try {
             if(accountPasswordStorage.containsKey(account))
                 return false;
             accountPasswordStorage.put(account,password);
-            playerStateLock.lock();
+            playerStateLock.writeLock().lock();
             try {
                 playerStateStorage.put(account,new PlayerState(account));
             }finally {
-                playerStateLock.unlock();
+                playerStateLock.writeLock().unlock();
             }
             return true;
         }finally {
-            accountPasswordLock.unlock();
+            accountPasswordLock.writeLock().unlock();
         }
     }
 
 
     private Hashtable<String,PlayerState> playerStateStorage=new Hashtable<>();
-    private Lock playerStateLock=new ReentrantLock();
+    private ReentrantReadWriteLock playerStateLock=new ReentrantReadWriteLock();
     public void updatePlayer(PlayerState playerState){
-        playerStateLock.lock();
+        playerStateLock.writeLock().lock();
         try {
             playerStateStorage.put(playerState.getAccount(), playerState.copy());
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.writeLock().unlock();
         }
     }
     public void login(String account){
         try{
-            playerStateLock.lockInterruptibly();
+            playerStateLock.readLock().lockInterruptibly();
             playerStateStorage.get(account).loginCountPlus();
         }catch (InterruptedException ex) {
             ex.printStackTrace();
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.readLock().unlock();
         }
     }
     public void logout(String account){
         try{
-            playerStateLock.lockInterruptibly();
+            playerStateLock.readLock().lockInterruptibly();
             playerStateStorage.get(account).loginCountDel();
         }catch (InterruptedException ex) {
             ex.printStackTrace();
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.readLock().unlock();
         }
     }
     public PlayerState queryPlayer(String account){
         try{
-            playerStateLock.lockInterruptibly();
+            playerStateLock.readLock().lockInterruptibly();
             if(playerStateStorage.containsKey(account))
                 return playerStateStorage.get(account);
             else {
@@ -140,12 +142,12 @@ public class ServerDB implements Serializable{
             ex.printStackTrace();
             return null;
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.readLock().unlock();
         }
     }
     public Hashtable<String,PlayerState> queryPlayerStates(HashSet<String> accounts){
         try {
-            playerStateLock.lockInterruptibly();
+            playerStateLock.readLock().lockInterruptibly();
             Hashtable<String, PlayerState> playerStateHashTable = new Hashtable<>();
             for (String account : accounts) {
                 playerStateHashTable.put(account, playerStateStorage.get(account));
@@ -155,13 +157,13 @@ public class ServerDB implements Serializable{
             ex.printStackTrace();
             return null;
         }finally{
-            playerStateLock.unlock();
+            playerStateLock.readLock().unlock();
         }
     }
     public void trySetPlayerOnlineStates(Set<String> accounts, PlayerState.OnlineState onlineState){
         try {
 
-            playerStateLock.lockInterruptibly();
+            playerStateLock.writeLock().lockInterruptibly();
             for(String account:accounts) {
                 if (playerStateStorage.containsKey(account)) {
                     playerStateStorage.get(account).setOnlineState(onlineState);
@@ -170,12 +172,12 @@ public class ServerDB implements Serializable{
         }catch (InterruptedException ex){
             ex.printStackTrace();
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.writeLock().unlock();
         }
     }
     public void trySetPlayerOnlineState(String account, PlayerState.OnlineState onlineState){
         try {
-            playerStateLock.lockInterruptibly();
+            playerStateLock.writeLock().lockInterruptibly();
             System.out.println("set "+account+" as \033[1;32m"+onlineState+"\033[0m");
             if (playerStateStorage.containsKey(account)){
                 playerStateStorage.get(account).setOnlineState(onlineState);
@@ -183,12 +185,12 @@ public class ServerDB implements Serializable{
         }catch (InterruptedException ex){
             ex.printStackTrace();
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.writeLock().unlock();
         }
     }
     public void trySetPlayerWinLose(HashSet<String> winners,HashSet<String> losers){
         try {
-            playerStateLock.lockInterruptibly();
+            playerStateLock.writeLock().lockInterruptibly();
             for (String account : winners) {
                 if(playerStateStorage.containsKey(account)){
                     playerStateStorage.get(account).winPlus();
@@ -202,11 +204,11 @@ public class ServerDB implements Serializable{
         }catch (Exception ex){
             ex.printStackTrace();
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.writeLock().unlock();
         }
     }
     public PlayerState[] fetchAllPlayerState(){
-        playerStateLock.lock();
+        playerStateLock.readLock().lock();
         try{
             PlayerState[] allPlayerState=new PlayerState[playerStateStorage.keySet().size()];
             int index=0;
@@ -215,7 +217,7 @@ public class ServerDB implements Serializable{
             }
             return allPlayerState;
         }finally {
-            playerStateLock.unlock();
+            playerStateLock.readLock().unlock();
         }
     }
 

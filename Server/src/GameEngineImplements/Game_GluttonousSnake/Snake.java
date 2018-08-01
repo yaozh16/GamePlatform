@@ -121,7 +121,7 @@ public class Snake {
             if(gridType.equals(GridBlank.class)){//出洞
                 occupied.push(next);
                 GridHole hole=(GridHole)gridMap.getGridMapObject(headFromHolePos);
-                if(hole.occupyFromDirection!=direction){
+                if(hole.getOccupyFromDirection()!=direction){
                     hole.occupy(direction,account);
                 }
                 occupy(next,new GridSnake(direction.opposite(),null,account));
@@ -260,6 +260,12 @@ public class Snake {
     public void markDie(){
         for(Integer each:occupied){
             ((GridSnake)(gridMap.getGridMapObject(each))).markDead();
+        }
+        if(headInHolePos!=null){
+            ((GridHole)gridMap.getGridMapObject(headFromHolePos)).markDead();
+        }
+        if(headFromHolePos!=null){
+            ((GridHole)gridMap.getGridMapObject(headFromHolePos)).markDead();
         }
         System.out.println("\033[1;32m"+account+"\033[0m die!");
         dead=true;

@@ -1,6 +1,8 @@
 package ClinetGUI.GameRoomPanel.RoomPanelComponents;
 
 
+import ClientEngine.Configs.ClientConfig;
+import ClientEngine.Configs.ClientConfigHolder;
 import ClientEngine.Configs.GameControlConfig;
 import ClientEngine.GameControler.ControlConfigChangeNotifier;
 import ClinetGUI.GameRoomPanel.EnterLobbyNotifier;
@@ -24,14 +26,14 @@ import java.util.TimerTask;
 public class GridDisplayPanel extends JPanel implements ClientEngineHolder,ControlConfigChangeNotifier {
     private EnterLobbyNotifier enterLobbyNotifier;
     private GridMapReader gridMapReader;
-    private final String account;
+    private final ClientConfig clientConfig;
     private final GameControlConfig gameControlConfig;
     private boolean focused=false;
 
-    public GridDisplayPanel(GridMapReader gridMapReader,EnterLobbyNotifier enterLobbyNotifier,String account,GameControlConfig gameControlConfig) {
+    public GridDisplayPanel(GridMapReader gridMapReader,EnterLobbyNotifier enterLobbyNotifier,ClientConfig clientConfig,GameControlConfig gameControlConfig) {
         this.gridMapReader = gridMapReader;
         this.enterLobbyNotifier=enterLobbyNotifier;
-        this.account=account;
+        this.clientConfig=clientConfig;
         this.gameControlConfig=gameControlConfig;
         addMouseListener(new MouseAdapter() {
             @Override
@@ -101,7 +103,7 @@ public class GridDisplayPanel extends JPanel implements ClientEngineHolder,Contr
                     }
                     for (int y = 0; y < localMap.height; y++) {
                         for (int x = 0; x < localMap.width; x++) {
-                            localMap.gridMapObjects.get(x + y * localMap.width).draw(bufferedGraphics, x, y, GridWidth, GridHeight,account,flashControl);
+                            localMap.gridMapObjects.get(x + y * localMap.width).draw(bufferedGraphics, x, y, GridWidth, GridHeight,clientConfig.getAccount(),flashControl);
                         }
                     }
                     bufferedGraphics.dispose();

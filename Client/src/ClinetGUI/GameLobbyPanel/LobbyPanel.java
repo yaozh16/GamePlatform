@@ -14,6 +14,7 @@ import GameState.GameConfig.RoomConfig;
 import Message.Common.Message;
 import Message.MessageProcessor.MessageProcessor;
 import Message.MessageProcessor.MessageProcessorCollection;
+import Message.RoomMessage.MRoomStateBroadcast;
 import Message.UpdateMessage.MUpdatePlayers;
 import Message.UpdateMessage.MUpdatePlayersReply;
 import Message.UpdateMessage.MUpdateRooms;
@@ -263,6 +264,12 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
                     }else {
                         new MessageBox(mJoinRoomReply.info,null,false).run();
                     }
+                }
+            })
+            .install(new MessageProcessor(MRoomStateBroadcast.class) {
+                @Override
+                public void process(Message message) {
+                    System.out.println("received MRoomStateBroadcast: ignore");
                 }
             });
 }

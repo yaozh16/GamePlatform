@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerRoomManager {
     private static ServerRoomManager ourInstance = new ServerRoomManager();
@@ -21,10 +22,10 @@ public class ServerRoomManager {
 
     private Hashtable<String,ServerRoomHandler> roomStateStorage=new Hashtable<>();//roomName to roomState
     private Hashtable<String,String> roomPlayerStorage=new Hashtable<>();//account to roomName
-    private Lock roomStateLock=new ReentrantLock();
+    private ReentrantReadWriteLock roomStateLock=new ReentrantReadWriteLock();
     public String tryBuildRoomAndJoin(String account, RoomConfig roomConfig,MsgThreadAsyn msgThreadAsyn){
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.writeLock().lockInterruptibly();
             if(roomStateStorage.containsKey(roomConfig.roomName)){
                 return "已有此房间";
             }else {
@@ -38,18 +39,19 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return "服务器中断";
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.writeLock().unlock();
         }
     }
     public String tryJoinRoom(String account, String roomName, MsgThreadAsyn msgThreadAsyn){
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.writeLock().lockInterruptibly();
             if(roomPlayerStorage.containsKey(account))
                 return "玩家不能加入多个房间";
             if(!roomStateStorage.containsKey(roomName))
                 return "不存在此房间";
-            if(!roomStateStorage.get(roomName).addPlayer(account,msgThreadAsyn)){
-                return "房间已满";
+            String error=roomStateStorage.get(roomName).addPlayer(account,msgThreadAsyn);
+            if(error!=null){
+                return error;
             };
             roomPlayerStorage.put(account,roomName);
             return null;
@@ -57,12 +59,13 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return "服务器中断";
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.writeLock().unlock();
         }
     }
     public String tryLeaveRoom(String account,String roomName){
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.writeLock().lockInterruptibly();
+            System.out.println(this+"tryleaveRoom("+account+","+roomName+")");
             if(!roomPlayerStorage.containsKey(account))
                 return "玩家未加入任何房间";
             if(!roomStateStorage.containsKey(roomName))
@@ -73,13 +76,13 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return "服务器中断";
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.writeLock().unlock();
         }
     }
     public String tryDismissRoom(String roomName){
         System.out.println("try to dismiss \033[1;35m"+roomName+"\033[0m");
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.writeLock().lockInterruptibly();
             if(!roomStateStorage.containsKey(roomName))
                 return "不存在该房间名";
             if(roomStateStorage.get(roomName).getRoomState().players.isEmpty()){
@@ -92,22 +95,23 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return "中断出错";
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.writeLock().unlock();
         }
     }
     public RoomState getRoomState(String roomName){
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.readLock().lockInterruptibly();
             return roomStateStorage.get(roomName).getRoomState();
         }catch (InterruptedException ex){
             return null;
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.readLock().unlock();
         }
     }
     public boolean checkPlayerFreeOfRoom(String account){
+        System.out.println("try to check Player Free");
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.readLock().lockInterruptibly();
             if(roomPlayerStorage.containsKey(account)) {
                 System.out.println(this+" found player in "+roomPlayerStorage.get(account));
                 return false;
@@ -117,12 +121,12 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return false;
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.readLock().unlock();
         }
     }
     public RoomState[] fetchAllRoomState(){
         try{
-            roomStateLock.lockInterruptibly();
+            roomStateLock.readLock().lockInterruptibly();
             RoomState[] allRoomStates=new RoomState[roomStateStorage.size()];
             int index=0;
             for(String roomName:roomStateStorage.keySet()){
@@ -133,7 +137,7 @@ public class ServerRoomManager {
             ex.printStackTrace();
             return new RoomState[0];
         }finally {
-            roomStateLock.unlock();
+            roomStateLock.readLock().unlock();
         }
     }
 

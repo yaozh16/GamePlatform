@@ -9,8 +9,9 @@ import java.awt.*;
 public class GridHole implements GridMapObject {
     public int index;//坐标
     public GridHole connected=null;//当前洞连接的洞
-    public Direction occupyFromDirection=null;
-    public String account=null;
+    private Direction occupyFromDirection=null;
+    private Boolean dead=false;
+    private String account=null;
     private String id;
     @Override
     public void finish() {
@@ -18,11 +19,15 @@ public class GridHole implements GridMapObject {
         occupyFromDirection=null;
     }
 
+    public void markDead(){
+        this.dead=true;
+    }
+
     @Override
     public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight,String myAccount,int flashControl) {
         g.setColor(ColorManager.getInstance().getColor(id));
         g.fillRect(x*GridWidth,y*GridHeight,GridWidth,GridHeight);
-        if(occupyFromDirection!=null&&account!=null){
+        if(occupyFromDirection!=null&&account!=null&&(dead&&flashControl%2==1)){
             g.setColor(ColorManager.getInstance().getColor(account));
             switch (occupyFromDirection){
                 case LEFT:
@@ -65,6 +70,10 @@ public class GridHole implements GridMapObject {
     public void occupy(Direction occupyFromDirection,String account){
         this.occupyFromDirection=occupyFromDirection;
         this.account=account;
+        this.dead=false;
+    }
+    public Direction getOccupyFromDirection(){
+        return occupyFromDirection;
     }
     public String toString(){
         return "H";

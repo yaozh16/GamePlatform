@@ -20,6 +20,7 @@ import ServerBase.ServerThread;
 import ServerSingletons.ServerRoomManager;
 import ServerSingletons.ServerBasicManager;
 
+import java.awt.*;
 import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Timer;
@@ -33,7 +34,7 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
     private final Hashtable<String,Boolean> pauseConfirmTable=new Hashtable<>();
     private Lock roomPersonLock=new ReentrantLock();
     private RoomState roomState;
-    private Lock roomStateLock=new ReentrantLock();
+    private Lock roomStateLock=new ReentrantLock();//addPlayer,Leave,Ready,PauseConfigChange,Result
     private GameEngine gameEngine;
     private Timer timer;
     public ServerRoomHandler(RoomState roomState,MsgThreadAsyn initMsgThreadAsyn,String initPlayer){
@@ -42,15 +43,18 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
         addPlayer(initPlayer,initMsgThreadAsyn);
     }
 
-    public synchronized RoomState getRoomState(){
+    public RoomState getRoomState(){
         return roomState;
     }
 
     //return if succeed
-    public synchronized boolean addPlayer(String account,MsgThreadAsyn msgThreadAsyn){
+    public synchronized String addPlayer(String account,MsgThreadAsyn msgThreadAsyn){
         try{
             roomStateLock.lockInterruptibly();
             roomPersonLock.lockInterruptibly();
+            if(roomState.getRoomStateType()!=RoomState.RoomStateType.Free){
+                return "游戏中";
+            }
             if(roomState.getRoomConfig().getGameConfig().getMaxPlayer()>players.keySet().size()) {
                 msgThreadAsyn.setObjThreadAsynHolder(this);
                 players.put(account, msgThreadAsyn);
@@ -60,13 +64,13 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
                                 ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),
                                 roomState.getRoomConfig().getGameConfig().InitPlayerGameStates(new Hashtable<>(),roomState.players),
                                 roomState));
-                return true;
+                return null;
             }else {
-                return false;
+                return "房间已满";
             }
         }catch (InterruptedException ex){
             ex.printStackTrace();
-            return false;
+            return "加入失败";
         }finally {
             roomPersonLock.unlock();
             roomStateLock.unlock();
@@ -86,8 +90,10 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
 
 
     //dismiss
+    private boolean finished=false;
     @Override
     public void finish() {
+        finished=true;
         try{
             broadcastToAllMessage(new MDismiss(true,"Dismiss",null));
             for(String account:players.keySet()){
@@ -215,8 +221,7 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
         try{
             roomStateLock.lockInterruptibly();
             MsgThreadAsyn msgThreadAsyn=players.remove(account);
-            roomState.players.remove(account);
-            roomState.lefters.add(account);
+            roomState.getPlayers().remove(account);
             if(msgThreadAsyn!=null){
                 msgThreadAsyn.finish();
                 try{
@@ -229,21 +234,44 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
             }else {
                 System.err.println("something missed?");
             }
+            System.out.println(this+"try set playerOnlineState");
             ServerDB.getInstance().trySetPlayerOnlineState(account, PlayerState.OnlineState.FREE);
             ServerRoomManager.getInstance().tryLeaveRoom(account,roomState.getRoomConfig().roomName);
             if(gameEngine!=null) {
                 gameEngine.killConnection(account);
             }
             checkDismiss();
+            System.out.println(this+" Broadcast for onLeaveMsg");
+            ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()));
+            ServerBasicManager.getInstance().broadcast(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()));
+            if(roomState.getRoomStateType().equals(RoomState.RoomStateType.Free)) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println(this+"leaveMsg broadcast to rest:"+roomState.roomParticipants());
+                        broadcastToAllMessage(
+                            new MRoomStateBroadcast(
+                                    ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),
+                                    roomState.getRoomConfig().getGameConfig().InitPlayerGameStates(new Hashtable<>(),roomState.players),
+                                    roomState)
+                    );
+                    }
+                }).start();
+            }else {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        broadcastToAllMessage(new MRoomStateBroadcast(ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),gameEngine.getPlayerGameStates(),roomState));
+                    }
+                }).start();
+            }
         }catch (InterruptedException exc){
             exc.printStackTrace();
         }finally {
             roomStateLock.unlock();
         }
 
-        System.out.println(this+" Broadcast for onLeaveMsg");
-        ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()));
-        ServerBasicManager.getInstance().broadcast(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()));
+
     }
 
     MessageProcessorCollection messageProcessorCollection=new MessageProcessorCollection()
@@ -253,21 +281,22 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
                     MReady mReady=(MReady)message;
                     try{
                         roomStateLock.lockInterruptibly();
-                        if(roomState.getRoomStateType()==RoomState.RoomStateType.Free) {
-                            if (roomState.players.contains(mReady.account)) {
-                                if(mReady.ready)
-                                    ServerDB.getInstance().trySetPlayerOnlineState(mReady.account, PlayerState.OnlineState.READY);
-                                else
-                                    ServerDB.getInstance().trySetPlayerOnlineState(mReady.account, PlayerState.OnlineState.InRoom);
+                        if (roomState.players.contains(mReady.account)) {
+                            if(mReady.ready)
+                                ServerDB.getInstance().trySetPlayerOnlineState(mReady.account, PlayerState.OnlineState.READY);
+                            else
+                                ServerDB.getInstance().trySetPlayerOnlineState(mReady.account, PlayerState.OnlineState.InRoom);
 
-                                System.out.println(this+" Broadcast for Ready");
-                                ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()));
-                                ServerBasicManager.getInstance().broadcast(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()));
-                                broadcastToAllMessage(new MRoomStateBroadcast(
-                                        ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),
-                                        roomState.getRoomConfig().getGameConfig().InitPlayerGameStates(new Hashtable<>(),roomState.players),
-                                        roomState));
-                            }
+                            System.out.println(this+" Broadcast for Ready");
+                            ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()));
+                            ServerBasicManager.getInstance().broadcast(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()));
+                            broadcastToAllMessage(
+                                    new MRoomStateBroadcast(
+                                            ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),
+                                            roomState.getRoomConfig().getGameConfig().InitPlayerGameStates(new Hashtable<>(),roomState.players),
+                                            roomState));
+                        }
+                        if(roomState.getRoomStateType()==RoomState.RoomStateType.Free) {
                             Hashtable<String,PlayerState> allPlayerState=ServerDB.getInstance().queryPlayerStates(roomState.players);
                             for(String key:allPlayerState.keySet()){
                                 if(allPlayerState.get(key).getOnlineState()!=PlayerState.OnlineState.READY){
@@ -294,13 +323,13 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
                             ServerRoomHandler.this.roomState.setRoomStateType(RoomState.RoomStateType.Game);
                             ServerDB.getInstance().trySetPlayerOnlineStates(roomState.players,PlayerState.OnlineState.Game);
 
-                            gameEngine.setPause(false);
                             broadcastToAllMessage(new MStart(true,"继续",null,1));
                             broadcastToAllMessage(
                                     new MRoomStateBroadcast(
                                             ServerDB.getInstance().queryPlayerStates(roomState.roomParticipants()),
-                                            roomState.getRoomConfig().getGameConfig().InitPlayerGameStates(new Hashtable<>(),roomState.players),
+                                            gameEngine.getPlayerGameStates(),
                                             roomState));
+                            gameEngine.setPause(false);
                         }
                     }catch (InterruptedException exc){
                         exc.printStackTrace();
@@ -472,12 +501,6 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
             }
             //记分
             ServerDB.getInstance().trySetPlayerWinLose(result.getWinner(),result.getLosers());
-            //重新加入
-            Hashtable<String,MsgThreadAsyn> oldViewers=viewers;
-            viewers.clear();
-            for(String account:oldViewers.keySet()){
-                addPlayer(account,oldViewers.get(account));
-            }
             //广播
             System.out.println(this+" Broadcast for Game Done");
             ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true, "OK", null, ServerRoomManager.getInstance().fetchAllRoomState()));

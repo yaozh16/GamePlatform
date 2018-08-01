@@ -26,6 +26,7 @@ public class OptionPanel extends JPanel {
     private final ControlConfigChangeNotifier controlConfigChangeNotifier;
     //与网络连接有关
     private class GamePanel extends JPanel{
+        private volatile boolean ready=false;
         JButton leaveButton=new JButton("离开房间");
         JButton readyButton=new JButton("准备");
         JButton pauseButton=new JButton("请求暂停");
@@ -57,7 +58,8 @@ public class OptionPanel extends JPanel {
             readyButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    msgThreadAsynHolder.toSendObj(new MReady(clientConfigHolder.getClientConfig().getAccount(),clientConfigHolder.getClientConfig().getValidateCode(),true));
+                    System.out.println("state="+ready);
+                    msgThreadAsynHolder.toSendObj(new MReady(clientConfigHolder.getClientConfig().getAccount(),clientConfigHolder.getClientConfig().getValidateCode(),!ready));
                 }
             });
             leaveButton.addActionListener(new ActionListener() {
@@ -78,6 +80,7 @@ public class OptionPanel extends JPanel {
 
             readyButton.setForeground(new Color(25, 250, 16));
             readyButton.setText("准备");
+            ready=false;
             add(readyButton);
 
 
@@ -89,15 +92,18 @@ public class OptionPanel extends JPanel {
             if(ready){
                 readyButton.setForeground(new Color(248, 183, 29));
                 readyButton.setText("取消准备");
+                this.ready=true;
             }else {
                 readyButton.setForeground(new Color(25, 250, 16));
                 readyButton.setText("准备");
+                this.ready=false;
             }
         }
         private void markGame(){
             super.removeAll();
             setLayout(new GridLayout(1,0,10,10));
 
+            ready=true;
             pauseButton.setForeground(new Color(152, 77, 255));
             add(pauseButton);
 
@@ -142,6 +148,7 @@ public class OptionPanel extends JPanel {
 
             readyButton.setForeground(new Color(25, 250, 16));
             readyButton.setText("继续(准备)");
+            ready=false;
             add(readyButton);
 
 
@@ -157,6 +164,7 @@ public class OptionPanel extends JPanel {
 
             readyButton.setForeground(new Color(25, 250, 16));
             readyButton.setText("重新开始");
+            ready=false;
             add(readyButton);
 
 

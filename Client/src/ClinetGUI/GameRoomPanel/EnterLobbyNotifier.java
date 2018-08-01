@@ -1,9 +1,9 @@
 package ClinetGUI.GameRoomPanel;
 
 import javax.swing.*;
+import java.util.concurrent.FutureTask;
 
 public interface EnterLobbyNotifier {
     public void enterLobby();
-    public void frameUpdate(JComponent nextFocus);
-    public void frameUpdateSycn(JComponent nextFocus);
+    public void frameUpdate(FutureTask<Void> task);
 }

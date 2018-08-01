@@ -187,6 +187,7 @@ public class ServerBasicHandler extends ServerThread implements MsgThreadAsynHol
                         sendMessage(new MBuildRoomReply(false,"玩家不能加入多个房间",messageProcessorCollection.updateValidateCode(mBuildRoom.account),null));
                     }else {
                         String error=ServerRoomManager.getInstance().tryBuildRoomAndJoin(mBuildRoom.account,mBuildRoom.roomConfig,msgThreadAsyn);
+                        System.out.println("创建房间:"+error);
                         if(error==null){
                             System.out.println(ServerBasicHandler.this+"创建房间");
                             ServerDB.getInstance().trySetPlayerOnlineState(mBuildRoom.account,PlayerState.OnlineState.InRoom);

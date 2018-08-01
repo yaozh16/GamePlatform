@@ -17,21 +17,33 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 public class MainFrame extends JFrame implements EnterRoomNotifier,EnterLobbyNotifier,LoginSuccessNotifier,UpdateUINotifier {
 
     private ClientConfig clientConfig=new ClientConfig();
     private RoomState roomState=new RoomState(new HashSet<>(),new HashSet<>(),new HashSet<>(),new RoomConfig("",
             new GameConfig(2,20,20,20,20,5,20,GameType.GluttonousSnake)));
-    private LobbyPanel lobbyPanel=null;
-    private RoomPanel roomPanel=null;
+    private LobbyPanel lobbyPanel;
+    private RoomPanel roomPanel;
     private LoginDialog loginDialog=new LoginDialog(this,clientConfig,this);
 
+    private JPanel contentPane=new JPanel();
+    private CardLayout cardLayout=new CardLayout();
     public MainFrame(){
+        roomPanel=new RoomPanel(this,this,clientConfig,roomState,null);
+        lobbyPanel=new LobbyPanel(this,this,clientConfig,roomState);
+        contentPane.setLayout(cardLayout);
+        contentPane.add(lobbyPanel,"lobbyPanel");
+        contentPane.add(roomPanel,"roomPanel");
 
+        this.getContentPane().add(contentPane);
     }
     public void run() {
         try {
+            System.out.println("Try to set "+UIManager.getSystemLookAndFeelClassName());
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }catch (Exception ex){
             ex.printStackTrace();
@@ -44,85 +56,44 @@ public class MainFrame extends JFrame implements EnterRoomNotifier,EnterLobbyNot
         setVisible(true);
         loginDialog.run();
     }
-    private JComponent lastFocus=null;
-    @Override
-    public synchronized void frameUpdate(JComponent nextFocus){
+    public synchronized void frameUpdate(FutureTask<Void> task){
+        System.out.println("frameUpdate");
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                System.out.println("frameUpdate done");
                 MainFrame.this.setContentPane(MainFrame.this.getContentPane());
                 MainFrame.this.setEnabled(true);
-                if(nextFocus!=null) {
-                    lastFocus=nextFocus;
-                }
-                if(lastFocus!=null){
-                    lastFocus.requestFocus();
+                if(task!=null){
+                    task.run();
                 }
             }
         });
     }
-    @Override
-    public synchronized void frameUpdateSycn(JComponent nextFocus){
-        MainFrame.this.setContentPane(MainFrame.this.getContentPane());
-        MainFrame.this.setEnabled(true);
-        MainFrame.this.setVisible(true);
-        if(nextFocus!=null) {
-            lastFocus=nextFocus;
-        }
-        if(lastFocus!=null){
-            lastFocus.requestFocus();
-        }
-    }
+
     @Override
     public synchronized void enterRoom(MsgThreadAsyn msgThreadAsyn) {
-        new Thread(new Runnable() {
+        cardLayout.show(contentPane,"roomPanel");
+        frameUpdate(new FutureTask<Void>(new Callable<Void>() {
             @Override
-            public void run() {
-                roomPanel=new RoomPanel(MainFrame.this,MainFrame.this,clientConfig,roomState,msgThreadAsyn);
-                if(lobbyPanel!=null) {
-                    lobbyPanel.finish();
-                    remove(lobbyPanel);
-                }
-                lobbyPanel=null;
-                add(roomPanel);
-                frameUpdate(roomPanel);
+            public Void call() throws Exception {
+                roomPanel.requestFocus();
+                roomPanel.wakeUp(msgThreadAsyn);
+                return null;
             }
-        }).start();
+        }));
     }
     @Override
     public synchronized void enterLobby() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("enterLobby()");
-                if(roomPanel!=null) {
-                    roomPanel.finish();
-                    remove(roomPanel);
-                }
-                roomPanel=null;
-
-                if(lobbyPanel==null){
-                    lobbyPanel=new LobbyPanel(MainFrame.this,MainFrame.this,clientConfig,roomState);
-                    add(lobbyPanel);
-                }
-                if(clientConfig.getValidateCode()!=null) {
-                    Socket socket=clientConfig.setUpSocket();
-                    if(socket!=null){
-                        lobbyPanel.setUpObjThread(socket);
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                lobbyPanel.requestUpdate();
-                            }
-                        }).start();
-                    }else {
-                        connectionLost();
-                    }
-                }
-                frameUpdate(lobbyPanel);
-                System.out.println("enterLobby()Done");
-            }
-        }).start();
+        System.out.println("enterLobby()");
+        roomPanel.finish();
+        cardLayout.show(contentPane,"lobbyPanel");
+        frameUpdate(null);
+        if(clientConfig.getValidateCode()!=null) {
+            lobbyPanel.setUpObjThread(clientConfig.setUpSocket());
+            lobbyPanel.requestUpdate();
+        }
+        System.out.println("enterLobby()Done");
 
     }
 
