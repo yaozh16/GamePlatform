@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="white">#FFFFFF</color>
+    <color name="opacityGreen">#bc93ef62</color>
+
+
+    <color name="loginMsgBoard">#fdb2c8fa</color>
+    <color name="loginBackground">#44474e</color>
+    <color name="loginItemEntry">#ad595d66</color>
+
+    <color name="lobbyBackground">#ca032268</color>
+    <color name="lobbyNavBar">#ad0e3eab</color>
+    <color name="lobbyNavButton">#9e033668</color>
+    <color name="lobbyRoomButton">#9e033668</color>
+    <color name="lobbyTitle">#a06a17ae</color>
+    <color name="color_EB7046">#EB7046</color>
+
+
+
+    <color name="room_background">#e738b622</color>
+    <color name="room_option_background">#ea218e0e</color>
+    <color name="room_option_controlPanel">#799cce13</color>
+    <color name="room_option_controlPanel_CenterCircle">#dece5910</color>
+    <color name="room_option_controlPanel_PosCircle">#c1ce1c13</color>
+    <color name="room_option_controlPanel_DirectionArrow">#caede72a</color>
+    <color name="room_score_background">#e72e8ae7</color>
+
+    <color name="config_background">#e92922b6</color>
+    <color name="config_roomName_background">#e96561ba</color>
+</resources>

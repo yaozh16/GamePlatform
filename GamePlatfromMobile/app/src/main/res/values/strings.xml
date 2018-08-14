@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">GamePlatformMobile</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+
+    <string name="login_port">端口号</string>
+    <string name="login_btn_login">登录</string>
+    <string name="login_btn_exit">退出</string>
+    <string name="login_btn_register">注册</string>
+    <string name="login_title">配置服务器信息</string>
+    <string name="login_account_label">帐号</string>
+    <string name="login_password_label">密码</string>
+    <string name="login_server_address_label">服务器IP地址</string>
+
+    <string name="lobby_btn_update">更新信息</string>
+    <string name="lobby_btn_build">新建房间</string>
+    <string name="lobby_title">游戏大厅</string>
+
+    <string name="room_option_controlpanel_hint_label">请触碰控制面板以控制方向</string>
+
+    <string name="room_option_gamepanel_btn_ready">准备</string>
+    <string name="room_option_gamepanel_btn_undo_ready">取消准备</string>
+    <string name="room_option_gamepanel_btn_exit">退出房间</string>
+    <string name="room_option_gamepanel_btn_pause">请求暂停</string>
+    <string name="room_option_gamepanel_btn_pause_agree">同意</string>
+    <string name="room_option_gamepanel_btn_pause_disagree">拒绝</string>
+    <string name="room_option_gamepanel_text_pause_request">对方请求暂停，是否同意？</string>
+
+
+    <string name="room_config_roomName">房间名</string>
+    <string name="room_config_maxPlayer">最多玩家数</string>
+    <string name="room_config_bonusCount">果实个数</string>
+    <string name="room_config_gridWidth">宽度</string>
+    <string name="room_config_gridHeight">高度</string>
+    <string name="room_config_maxLife">最大生命</string>
+    <string name="room_config_speed">游戏速度</string>
+    <string name="room_config_gameType">游戏类型</string>
+    <string name="room_config_holePair">洞口数目</string>
+    <string name="room_config_gameType_GluttonousSnake">贪吃蛇</string>
+    <string name="room_config_gameType_TankBattle">坦克大战</string>
+
+</resources>

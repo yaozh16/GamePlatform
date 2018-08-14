@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<zachary_yao.GamePlatformMobile.RoomComponents.OptionDirectionView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/room_option_controlPanel"
+    android:hint="@string/room_option_controlpanel_hint_label"
+    android:gravity="center">
+</zachary_yao.GamePlatformMobile.RoomComponents.OptionDirectionView>
