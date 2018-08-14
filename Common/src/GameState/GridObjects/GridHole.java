@@ -3,8 +3,7 @@ package GameState.GridObjects;
 import Direction.Direction;
 import GameState.GridMap;
 import GameState.GridObjects.Manager.ColorManager;
-
-import java.awt.*;
+import GameState.Proxy.CanvasProxy;
 
 public class GridHole implements GridMapObject {
     public int index;//坐标
@@ -24,10 +23,10 @@ public class GridHole implements GridMapObject {
     }
 
     @Override
-    public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight,String myAccount,int flashControl) {
+    public void draw(CanvasProxy g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
         g.setColor(ColorManager.getInstance().getColor(id));
         g.fillRect(x*GridWidth,y*GridHeight,GridWidth,GridHeight);
-        if(occupyFromDirection!=null&&account!=null&&(dead&&flashControl%2==1)){
+        if(occupyFromDirection!=null&&account!=null&&(!dead||flashControl%2==1)){
             g.setColor(ColorManager.getInstance().getColor(account));
             switch (occupyFromDirection){
                 case LEFT:
@@ -37,10 +36,10 @@ public class GridHole implements GridMapObject {
                     g.fillRoundRect(((int)(x * GridWidth+GridWidth*0.5)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.5)), ((int)(GridHeight*0.6)),GridWidth,GridHeight);
                     break;
                 case DOWN:
-                    g.fillRoundRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.5)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)),GridWidth,GridHeight);
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.5)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)));
                     break;
                 case UP:
-                    g.fillRoundRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)),GridWidth,GridHeight);
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)));
                     break;
             }
             g.fillArc(((int)(x*GridWidth+GridWidth*0.2)),((int)(y*GridHeight+GridHeight*0.2)),((int)(GridWidth*0.6)),((int)(GridHeight*0.6)),0,360);

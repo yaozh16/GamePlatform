@@ -1,4 +1,4 @@
-package GameEngine;
+package ClientEngine;
 
 public interface ClientEngine{
     public void start();

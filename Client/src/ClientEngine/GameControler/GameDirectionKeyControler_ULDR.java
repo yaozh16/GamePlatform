@@ -6,28 +6,25 @@ import Direction.DirectionWriter;
 import java.awt.event.KeyEvent;
 
 public class GameDirectionKeyControler_ULDR extends GameDirectionKeyControler {
-
-    public GameDirectionKeyControler_ULDR(DirectionWriter directionWriter){
+    public GameDirectionKeyControler_ULDR(DirectionWriter  directionWriter){
         super(directionWriter);
     }
-
     @Override
     public void keyPressed(KeyEvent e) {
-        System.out.print("\033[1;33mkeyEvent\033[0m");
+        System.out.println("Key Typed");
         switch (e.getKeyCode()){
             case KeyEvent.VK_UP:
-                directionWriter.setDirection(Direction.UP);
-                break;
-            case KeyEvent.VK_LEFT:
-                directionWriter.setDirection(Direction.LEFT);
+                setDirection(Direction.UP);
                 break;
             case KeyEvent.VK_DOWN:
-                directionWriter.setDirection(Direction.DOWN);
+                setDirection(Direction.DOWN);
+                break;
+            case KeyEvent.VK_LEFT:
+                setDirection(Direction.LEFT);
                 break;
             case KeyEvent.VK_RIGHT:
-                directionWriter.setDirection(Direction.RIGHT);
+                setDirection(Direction.RIGHT);
                 break;
         }
     }
-
 }

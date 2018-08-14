@@ -22,6 +22,7 @@ public class RoomConfigDialog extends JDialog {
         return roomConfigPanel;
     }
     private JPanel buildConfirmPanel(){
+        setTitle("建立房间设置");
         JPanel panel=new JPanel(new GridLayout(1,0));
         JButton button;
         button=new JButton("确定");

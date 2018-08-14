@@ -5,18 +5,17 @@ import ClientEngine.Configs.GameControlConfig;
 import ClientEngine.GameControler.ControlConfigChangeNotifier;
 import ClientEngine.GameControler.GameControlerType;
 import ClinetGUI.GameRoomPanel.EnterLobbyNotifier;
+import ClinetGUI.Universal.ColoredButton;
 import CommunicateControl.MsgThreadAsynHolder;
-import Message.RoomMessage.*;
-import javafx.scene.media.AudioClip;
-import javazoom.jl.player.Player;
+import Message.RoomMessage.MLeave;
+import Message.RoomMessage.MPause;
+import Message.RoomMessage.MPauseAnswer;
+import Message.RoomMessage.MReady;
 
-import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 
 public class OptionPanel extends JPanel {
     private final GameControlConfig gameControlConfig;
@@ -27,11 +26,11 @@ public class OptionPanel extends JPanel {
     //与网络连接有关
     private class GamePanel extends JPanel{
         private volatile boolean ready=false;
-        JButton leaveButton=new JButton("离开房间");
-        JButton readyButton=new JButton("准备");
-        JButton pauseButton=new JButton("请求暂停");
-        JButton pauseAnswerButton_Yes=new JButton("同意暂停");
-        JButton pauseAnswerButton_No =new JButton("拒绝暂停");
+        JButton leaveButton=new ColoredButton("离开房间",null,30,30,Color.WHITE,10);
+        JButton readyButton=new ColoredButton("准备",null,30,30,Color.WHITE,10);
+        JButton pauseButton=new ColoredButton("请求暂停",null,30,30,Color.WHITE,10);
+        JButton pauseAnswerButton_Yes=new ColoredButton("同意暂停",null,30,30,Color.WHITE,10);
+        JButton pauseAnswerButton_No =new ColoredButton("拒绝暂停",null,30,30,Color.WHITE,10);
         JLabel msgDisplayBoard=new JLabel();
         {
             pauseButton.addActionListener(new ActionListener() {
@@ -78,23 +77,23 @@ public class OptionPanel extends JPanel {
             setLayout(new GridLayout(1,0,10,10));
 
 
-            readyButton.setForeground(new Color(25, 250, 16));
+            readyButton.setBackground(new Color(25, 250, 16));
             readyButton.setText("准备");
             ready=false;
             add(readyButton);
 
 
-            leaveButton.setForeground(new Color(255,0,0));
+            leaveButton.setBackground(new Color(255,0,0));
             add(leaveButton);
             enterLobbyNotifier.frameUpdate(null);
         }
         private void markReadyDone(boolean ready){
             if(ready){
-                readyButton.setForeground(new Color(248, 183, 29));
+                readyButton.setBackground(new Color(248, 183, 29));
                 readyButton.setText("取消准备");
                 this.ready=true;
             }else {
-                readyButton.setForeground(new Color(25, 250, 16));
+                readyButton.setBackground(new Color(25, 250, 16));
                 readyButton.setText("准备");
                 this.ready=false;
             }
@@ -104,10 +103,10 @@ public class OptionPanel extends JPanel {
             setLayout(new GridLayout(1,0,10,10));
 
             ready=true;
-            pauseButton.setForeground(new Color(152, 77, 255));
+            pauseButton.setBackground(new Color(152, 77, 255));
             add(pauseButton);
 
-            leaveButton.setForeground(new Color(255,0,0));
+            leaveButton.setBackground(new Color(255,0,0));
             add(leaveButton);
 
             enterLobbyNotifier.frameUpdate(null);
@@ -121,23 +120,23 @@ public class OptionPanel extends JPanel {
             JPanel selectionPanel=new JPanel(new GridLayout(1,0));
             pauseAnswerButton_No.setEnabled(true);
             pauseAnswerButton_Yes.setEnabled(true);
-            pauseAnswerButton_No.setForeground(new Color(9, 14, 91));
-            pauseAnswerButton_Yes.setForeground(new Color(255, 17, 127));
+            pauseAnswerButton_No.setBackground(new Color(9, 14, 91));
+            pauseAnswerButton_Yes.setBackground(new Color(255, 17, 127));
             selectionPanel.add(pauseAnswerButton_No);
             selectionPanel.add(pauseAnswerButton_Yes);
             panel.add(selectionPanel);
             add(panel);
 
-            leaveButton.setForeground(Color.WHITE);
-            leaveButton.setForeground(new Color(255,0,0));
+            leaveButton.setBackground(Color.WHITE);
+            leaveButton.setBackground(new Color(255,0,0));
             add(leaveButton);
 
             enterLobbyNotifier.frameUpdate(null);
         }
         private void markPauseAnswered(boolean agree){
             msgDisplayBoard.setText("已经"+(agree?"同意暂停":"拒绝暂停"));
-            pauseAnswerButton_No.setForeground(new Color(9, 14, 91,127));
-            pauseAnswerButton_Yes.setForeground(new Color(255, 17, 127,127));
+            pauseAnswerButton_No.setBackground(new Color(9, 14, 91,127));
+            pauseAnswerButton_Yes.setBackground(new Color(255, 17, 127,127));
             pauseAnswerButton_No.setEnabled(false);
             pauseAnswerButton_No.setEnabled(false);
         }
@@ -146,13 +145,13 @@ public class OptionPanel extends JPanel {
             setLayout(new GridLayout(1,0,10,10));
 
 
-            readyButton.setForeground(new Color(25, 250, 16));
+            readyButton.setBackground(new Color(25, 250, 16));
             readyButton.setText("继续(准备)");
             ready=false;
             add(readyButton);
 
 
-            leaveButton.setForeground(new Color(255,0,0));
+            leaveButton.setBackground(new Color(255,0,0));
             add(leaveButton);
 
             enterLobbyNotifier.frameUpdate(null);
@@ -162,13 +161,13 @@ public class OptionPanel extends JPanel {
             setLayout(new GridLayout(1,0,10,10));
 
 
-            readyButton.setForeground(new Color(25, 250, 16));
+            readyButton.setBackground(new Color(25, 250, 16));
             readyButton.setText("重新开始");
             ready=false;
             add(readyButton);
 
 
-            leaveButton.setForeground(new Color(255,0,0));
+            leaveButton.setBackground(new Color(255,0,0));
             add(leaveButton);
             enterLobbyNotifier.frameUpdate(null);
         };
@@ -231,6 +230,9 @@ public class OptionPanel extends JPanel {
         add(gamePanel);
         enterLobbyNotifier.frameUpdate(null);
         msgThreadAsynHolder.toSendObj(new MReady(clientConfigHolder.getClientConfig().getAccount(),clientConfigHolder.getClientConfig().getValidateCode(),false));
+    }
+    public void markInit(){
+        gamePanel.markInit();
     }
     public void notifyReadyDone(boolean ready){
         gamePanel.markReadyDone(ready);

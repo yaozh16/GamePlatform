@@ -2,8 +2,7 @@ package GameState.GridObjects;
 
 import Direction.Direction;
 import GameState.GridObjects.Manager.ColorManager;
-
-import java.awt.*;
+import GameState.Proxy.CanvasProxy;
 
 public class GridTank implements GridMapObject {
 
@@ -36,7 +35,7 @@ public class GridTank implements GridMapObject {
     }
 
     @Override
-    public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
+    public void draw(CanvasProxy g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
         if(justBorn||isDead){
             if(flashControl%2==0){
                 return;

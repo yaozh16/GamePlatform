@@ -1,17 +1,15 @@
 package ClinetGUI.GameLobbyPanel;
 
-import ClientEngine.Configs.ClientConfig;
-import ClinetGUI.Universal.LoginSuccessNotifier;
-import ClinetGUI.Universal.MessageBox;
-import ClinetGUI.Universal.RoomConfigDialog;
-import ClinetGUI.Universal.RoomConfigNotifier;
 import BasicState.PlayerState;
 import BasicState.RoomState;
+import ClientEngine.Configs.ClientConfig;
+import ClinetGUI.Universal.*;
 import CommunicateControl.MsgThreadAsyn;
 import CommunicateControl.MsgThreadAsynHolder;
 import CommunicateControl.ObjThreadAsyn;
 import GameState.GameConfig.RoomConfig;
 import Message.Common.Message;
+import Message.MessageProcessor.LeftOverMessageProcessor;
 import Message.MessageProcessor.MessageProcessor;
 import Message.MessageProcessor.MessageProcessorCollection;
 import Message.RoomMessage.MRoomStateBroadcast;
@@ -28,11 +26,12 @@ import java.awt.event.ActionListener;
 import java.net.Socket;
 
 public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfigNotifier {
-    private EnterRoomNotifier enterRoomNotifier;
-    private LoginSuccessNotifier loginSuccessNotifier;
+    private final EnterRoomNotifier enterRoomNotifier;
+    private final LoginSuccessNotifier loginSuccessNotifier;
     private final ClientConfig clientConfig;
-    private RoomState roomState;
+    private final RoomState roomState;
     private MsgThreadAsyn msgThreadAsyn;
+    private final LeftOverMessageProcessor leftOverMessageProcessor;
     @Override
     public String toString(){
         return "Client.LobbyPanel";
@@ -53,13 +52,11 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
         private int minButtonCount=12;
         private int lineButtonCount=4;
         class RoomButton extends JButton{
-
             public RoomButton(String text,ActionListener l){
                 super(text);
                 addActionListener(l);
             }
             public RoomButton(RoomState roomState){
-
                 super(roomState.formatToHTML());
                 addActionListener(new ActionListener(){
                     @Override
@@ -77,29 +74,37 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
                 setEnabled(false);
             }
         }
-        public RoomButton newRoomButton=new RoomButton("new Room", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
+        public JButton newRoomButton=new ColoredButton("创建新房间",new Color(36,223,0,255),20,20,new Color(255,247,244)) {
+            {
+                addActionListener(new ActionListener() {
                     @Override
-                    public void run() {
-                        RoomConfigDialog roomConfigDialog=new RoomConfigDialog(LobbyPanel.this);
-                        roomConfigDialog.run();
+                    public void actionPerformed(ActionEvent e) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                RoomConfigDialog roomConfigDialog = new RoomConfigDialog(LobbyPanel.this);
+                                roomConfigDialog.run();
+                            }
+                        }).start();
                     }
-                }).start();
+                });
             }
-        });
-        public RoomButton updateButton=new RoomButton("Update", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
+        };
+        public JButton updateButton=new ColoredButton("Update",new Color(45, 46, 223,200),20,20,new Color(255, 247, 244)) {
+            {
+                addActionListener(new ActionListener() {
                     @Override
-                    public void run() {
-                        requestUpdate();
+                    public void actionPerformed(ActionEvent e) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                requestUpdate();
+                            }
+                        }).start();
                     }
-                }).start();
+                });
             }
-        });
+        };
         public void update(RoomState[] roomStates){
             int n=roomStates.length+1;
             setPreferredSize(new Dimension(0,150*(Math.max(n/lineButtonCount+1,minButtonCount/lineButtonCount+1))));
@@ -144,12 +149,13 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
     }
     private GraphicRoomPanel graphicPanel=new GraphicRoomPanel();
     private ListPlayerPanel listPanel =new ListPlayerPanel();
-    public LobbyPanel(EnterRoomNotifier enterRoomNotifier, LoginSuccessNotifier loginSuccessNotifier, ClientConfig clientConfig, RoomState roomState){
+    public LobbyPanel(EnterRoomNotifier enterRoomNotifier, LoginSuccessNotifier loginSuccessNotifier, ClientConfig clientConfig, RoomState roomState, LeftOverMessageProcessor leftOverMessageProcessor){
         super(new GridBagLayout());
         this.enterRoomNotifier=enterRoomNotifier;
         this.loginSuccessNotifier=loginSuccessNotifier;
         this.clientConfig=clientConfig;
         this.roomState=roomState;
+        this.leftOverMessageProcessor=leftOverMessageProcessor;
 
         add(new JScrollPane(graphicPanel),
                 new GridBagConstraints(0,0,5,1,5,1,10,GridBagConstraints.BOTH,
@@ -259,7 +265,7 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
                     MJoinRoomReply mJoinRoomReply=(MJoinRoomReply)message;
                     if(mJoinRoomReply.OK) {
                         System.out.println(mJoinRoomReply.roomState);
-                        roomState = mJoinRoomReply.roomState;
+                        roomState.copy(mJoinRoomReply.roomState);
                         enterRoomNotifier.enterRoom(msgThreadAsyn);
                     }else {
                         new MessageBox(mJoinRoomReply.info,null,false).run();
@@ -269,7 +275,7 @@ public class LobbyPanel extends JPanel implements MsgThreadAsynHolder,RoomConfig
             .install(new MessageProcessor(MRoomStateBroadcast.class) {
                 @Override
                 public void process(Message message) {
-                    System.out.println("received MRoomStateBroadcast: ignore");
+                    leftOverMessageProcessor.onRecvObj(message);
                 }
             });
 }

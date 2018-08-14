@@ -1,6 +1,8 @@
 package GameState.GridObjects;
 
-import java.awt.*;
+
+import GameState.Proxy.CanvasProxy;
+import GameState.Proxy.ColorProxy;
 
 public class GridWall implements GridMapObject {
 
@@ -10,9 +12,33 @@ public class GridWall implements GridMapObject {
     }
 
     @Override
-    public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight,String myAccount,int flashControl) {
-        g.setColor(Color.YELLOW);
-        g.fillRoundRect(((int)(x*GridWidth+GridWidth*0.1)),((int)(y*GridHeight+GridHeight*0.1)),((int)(GridWidth*0.8)),((int)(GridHeight*0.8)),((int) (0.2 * GridWidth)), ((int) (0.2 * GridHeight)));
+    public void draw(CanvasProxy g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
+        int cx=x*GridWidth;
+        int cy=y*GridHeight;
+        g.setColor(new ColorProxy(254, 164, 0));
+        g.fillRect(cx,cy,GridWidth, GridHeight);
+        g.setColor(new ColorProxy(0, 0, 0));
+        for(int i=0;i<4;i++){
+            int ny=cy+(int)(i*GridHeight/3);
+            g.drawLine(cx,ny,cx+GridWidth,ny);
+        }
+        if((x+y)%2==0){//中
+            g.drawLine(cx+(GridWidth/2),cy,cx+GridWidth/2,cy+GridHeight/3);
+            g.drawLine(cx+(GridWidth/2),cy+GridWidth*2/3,cx+GridWidth/2,cy+GridHeight);
+            g.drawLine(cx+(GridWidth/4),cy+GridHeight/3,cx+GridWidth/4,cy+(GridHeight*2/3));
+            g.drawLine(cx+(GridWidth*3/4),cy+GridHeight/3,cx+GridWidth*3/4,cy+GridHeight*2/3);
+            g.drawLine(cx,cy,cx,cy+GridHeight/3);
+            g.drawLine(cx+GridWidth,cy,cx+GridWidth,cy+GridHeight/3);
+            g.drawLine(cx,cy+GridHeight*2/3,cx,cy+GridHeight);
+            g.drawLine(cx+(GridWidth),cy+GridHeight*2/3,cx+GridWidth,cy+GridHeight);
+        }else {//工
+            g.drawLine(cx+(GridWidth/4),cy,cx+GridWidth/4,cy+GridHeight/3);
+            g.drawLine(cx+(GridWidth*3/4),cy,cx+GridWidth*3/4,cy+GridHeight/3);
+            g.drawLine(cx+(GridWidth/4),cy+GridHeight*2/3,cx+GridWidth/4,cy+GridHeight);
+            g.drawLine(cx+(GridWidth*3/4),cy+GridHeight*2/3,cx+GridWidth*3/4,cy+GridHeight);
+            g.drawLine(cx+(GridWidth/2),cy+GridHeight*1/3,cx+GridWidth/2,cy+(GridHeight*2/3));
+        }
+
     }
     public String toString(){
         return "W";

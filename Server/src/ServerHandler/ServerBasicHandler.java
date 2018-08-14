@@ -1,9 +1,9 @@
 package ServerHandler;
 
-import CommunicateControl.MsgThreadAsynHolder;
-import CommunicateControl.MsgThreadAsyn;
 import BasicState.PlayerState;
 import BasicState.RoomState;
+import CommunicateControl.MsgThreadAsyn;
+import CommunicateControl.MsgThreadAsynHolder;
 import CommunicateControl.ObjThreadAsyn;
 import GameState.GridObjects.Manager.ColorManager;
 import Message.Common.Message;
@@ -16,9 +16,9 @@ import Message.UpdateMessage.MUpdateRooms;
 import Message.UpdateMessage.MUpdateRoomsReply;
 import Message.VisitorMessage.*;
 import ServerBase.ServerThread;
+import ServerSingletons.ServerBasicManager;
 import ServerSingletons.ServerDB;
 import ServerSingletons.ServerRoomManager;
-import ServerSingletons.ServerBasicManager;
 
 import java.net.Socket;
 import java.time.LocalDateTime;
@@ -81,6 +81,7 @@ public class ServerBasicHandler extends ServerThread implements MsgThreadAsynHol
             .install(new MessageProcessor(MSignup.class) {
                 @Override
                 public void process(Message message) {
+                    System.out.println(message.getClass());
                     MSignup mSignUp=(MSignup)message;
                     for(String illegalPrefix:ColorManager.getInstance().illegalName()){
                         if(mSignUp.account.startsWith(illegalPrefix)){
@@ -89,7 +90,7 @@ public class ServerBasicHandler extends ServerThread implements MsgThreadAsynHol
                         }
                     }
                     if(ServerDB.getInstance().signupAccount(mSignUp.account,mSignUp.password)){
-                        sendMessage(new MSignupReply(true,"注册成功"));
+                        sendMessage(new MSignupReply(true,"注册成功,请登录"));
                         ServerBasicManager.getInstance().broadcastExcept(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()),ServerBasicHandler.this);
                         ServerBasicManager.getInstance().broadcastExcept(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()),ServerBasicHandler.this);
                     }else {

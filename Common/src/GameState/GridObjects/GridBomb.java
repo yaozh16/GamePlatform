@@ -1,8 +1,7 @@
 package GameState.GridObjects;
 
 import GameState.GridObjects.Manager.ColorManager;
-
-import java.awt.*;
+import GameState.Proxy.CanvasProxy;
 
 public class GridBomb  implements GridMapObject{
     private final String sender;
@@ -27,7 +26,7 @@ public class GridBomb  implements GridMapObject{
     }
 
     @Override
-    public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
+    public void draw(CanvasProxy g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
         g.setColor(ColorManager.getInstance().getColor(sender+"_body"));
         g.fillArc(x*GridWidth+((int)(0.2*GridWidth)),y*GridHeight+((int)(0.2*GridHeight)),(int)(0.6*GridWidth),(int)(0.6*GridHeight),0,360);
     }

@@ -1,35 +1,36 @@
 package ClinetGUI.GameRoomPanel;
 
+import BasicState.PlayerState;
+import BasicState.RoomState;
+import ClientEngine.CommonClientEngine;
+import ClientEngine.Configs.ClientConfig;
 import ClientEngine.Configs.ClientConfigHolder;
 import ClientEngine.Configs.GameControlConfig;
 import ClientEngine.GameControler.ControlConfigChangeNotifier;
-import ClinetGUI.Universal.*;
 import ClinetGUI.GameRoomPanel.RoomPanelComponents.*;
+import ClinetGUI.Universal.ColoredButton;
+import ClinetGUI.Universal.GameResultReportMessageBox;
+import ClinetGUI.Universal.JGroupPanel;
+import ClinetGUI.Universal.LoginSuccessNotifier;
 import ClinetGUI.UpdateUINotifier;
-import BasicState.PlayerState;
 import CommunicateControl.MsgThreadAsyn;
 import CommunicateControl.MsgThreadAsynHolder;
-import ClientEngine.Configs.ClientConfig;
-import BasicState.RoomState;
 import CommunicateControl.ObjThreadAsyn;
-import ClientEngine.CommonClientEngine;
 import Message.Common.Message;
+import Message.MessageProcessor.LeftOverMessageProcessor;
 import Message.MessageProcessor.MessageProcessor;
 import Message.MessageProcessor.MessageProcessorCollection;
 import Message.RoomMessage.*;
 import Message.VisitorMessage.MTouch;
-import javafx.concurrent.Task;
 
 import javax.swing.*;
-import javax.swing.plaf.PanelUI;
 import java.awt.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
-public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyNotifier,UpdateUINotifier,ClientConfigHolder,ControlConfigChangeNotifier {
+public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyNotifier,UpdateUINotifier,ClientConfigHolder,ControlConfigChangeNotifier,LeftOverMessageProcessor {
     private EnterLobbyNotifier enterLobbyNotifier;
     private LoginSuccessNotifier loginSuccessNotifier;
     private final ClientConfig clientConfig;
@@ -52,9 +53,9 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
     private RoomStatePanel roomStatePanel;
     private final GameControlConfig gameControlConfig= new GameControlConfig();
 
-    private JButton roomStateButton=new ColoredButton("房间信息",new Color(255, 161, 21),10,10,Color.WHITE);
-    private JButton scoreButton=new ColoredButton("玩家信息",new Color(15, 27, 163),10,10,Color.WHITE);
-    private JButton musicButton=new ColoredButton("其他选项",new Color(22, 248, 9),10,10,Color.WHITE);
+    private JButton roomStateButton=new ColoredButton("房间信息",new Color(255, 161, 21),20,10,Color.WHITE,5);
+    private JButton scoreButton=new ColoredButton("玩家信息",new Color(15, 27, 163),20,10,Color.WHITE,5);
+    private JButton musicButton=new ColoredButton("其他选项",new Color(22, 248, 9),20,10,Color.WHITE,5);
 
 
 
@@ -119,6 +120,7 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
         rightPanel.setDividerLocation(0.7);
         splitPane.setDividerLocation(0.8);
         this.msgThreadAsyn = msgThreadAsyn;
+        optionPanel.markInit();
         msgThreadAsyn.sendMsg(new MReady(clientConfig.getAccount(),clientConfig.getValidateCode(),false));
         System.out.println("RoomPanel wakeup split Done");
 
@@ -259,7 +261,8 @@ public class RoomPanel extends JPanel implements MsgThreadAsynHolder,EnterLobbyN
                     roomState.getRoomConfig().getGameConfig().copy(mConfigChangeReply.getGameConfig());
                     roomStatePanel.notifyRoomStateUpdated();
                 }
-            }).install(new MessageProcessor(MConfigChangeBroadcast.class) {
+            })
+            .install(new MessageProcessor(MConfigChangeBroadcast.class) {
                 @Override
                 public void process(Message message) {
                     MConfigChangeBroadcast mConfigChangeBroadcast=(MConfigChangeBroadcast)message;

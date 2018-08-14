@@ -1,9 +1,10 @@
 package ClinetGUI.GameRoomPanel.RoomPanelComponents;
 
-import ClinetGUI.Universal.ColoredLabel;
-import ClinetGUI.UpdateUINotifier;
 import BasicState.PlayerGameState;
 import BasicState.PlayerState;
+import ClinetGUI.Universal.ColoredLabel;
+import ClinetGUI.Universal.LocalColorManagerTransfer;
+import ClinetGUI.UpdateUINotifier;
 import GameState.GridObjects.Manager.ColorManager;
 import Message.RoomMessage.MRoomStateBroadcast;
 
@@ -19,30 +20,33 @@ public class ScorePanel  extends JPanel {
         private JLabel playerScoreLabel;
         private JLabel playerLifeLabel;
         public PlayerLabel(){
-            super("",new Color(255, 247, 236),10,10,Color.WHITE);
+            super("",new Color(255, 247, 236),10,10,Color.WHITE,5);
             setBorder(BorderFactory.createBevelBorder(0));
             setEnabled(false);
         }
         public PlayerLabel(PlayerState playerState,PlayerGameState playerGameState){
-            super(playerState.getAccount(),ColorManager.getInstance().getColor(playerState.getAccount()).darker(),10,10,Color.WHITE);
+            super(playerState.getAccount(),LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount()).darker()),10,10,Color.WHITE,5);
 
             setLayout(new GridLayout(0,1,10,10));
             setPreferredSize(new Dimension(0,140));
             JLabel label=new JLabel(playerState.getAccount());
-            label.setForeground(ColorManager.getInstance().getColor(playerState.getAccount()));
+            label.setForeground(LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount())));
             add(label);
             label=new JLabel("Win/Lost:"+playerState.getWin()+"/"+playerState.getLost());
-            label.setForeground(ColorManager.getInstance().getColor(playerState.getAccount()));
+            label.setForeground(LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount())));
             add(label);
+            new Color(1,2,3).darker();
             playerOnlineStateLabel=new ColoredLabel("State:"+playerState.getOnlineState(),
-                    ColorManager.getInstance().getColor(playerState.getAccount()).darker(),10,10,Color.WHITE);
-            playerLifeLabel=new ColoredLabel("Life:"+String.valueOf(playerGameState.getLife()),ColorManager.getInstance().getColor(playerState.getAccount()).darker(),10,10,new Color(255, 234, 167));
-            playerScoreLabel=new ColoredLabel("Score:"+String.valueOf(playerGameState.getScore()),ColorManager.getInstance().getColor(playerState.getAccount()).darker(),10,10,new Color(255, 234, 167));
+                    LocalColorManagerTransfer.transfer( ColorManager.getInstance().getColor(playerState.getAccount()).darker()),10,10,Color.WHITE);
+            playerLifeLabel=new ColoredLabel("Life:"+String.valueOf(playerGameState.getLife()),
+                    LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount()).darker()),10,10,new Color(255, 234, 167));
+            playerScoreLabel=new ColoredLabel("Score:"+String.valueOf(playerGameState.getScore()),
+                    LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount())).darker(),10,10,new Color(255, 234, 167));
             add(playerOnlineStateLabel);
             add(playerLifeLabel);
             add(playerScoreLabel);
             setBorder(BorderFactory.createBevelBorder(0));
-            setForeground(ColorManager.getInstance().getColor(playerState.getAccount()));
+            setForeground(LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(playerState.getAccount())));
         }
 
     }
@@ -62,7 +66,7 @@ public class ScorePanel  extends JPanel {
                 PlayerState.OnlineState state=mRoomStateBroadcast.playerStates.get(account).getOnlineState();
                 PlayerGameState gameState=mRoomStateBroadcast.playerGameStates.get(account);
                 label.playerOnlineStateLabel.setText("State:"+state);
-                label.playerOnlineStateLabel.setForeground(ColorManager.getInstance().getColor(state.toString()));
+                label.playerOnlineStateLabel.setForeground(LocalColorManagerTransfer.transfer(ColorManager.getInstance().getColor(state.toString())));
                 label.playerLifeLabel.setText("Life:"+String.valueOf(gameState.getLife()));
                 label.playerScoreLabel.setText("Score:"+String.valueOf(gameState.getScore()));
             }

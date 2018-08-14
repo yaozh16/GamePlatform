@@ -1,10 +1,13 @@
 package ServerHandler;
 
-import CommunicateControl.MsgThreadAsyn;
-import CommunicateControl.MsgThreadAsynHolder;
 import BasicState.PlayerState;
 import BasicState.RoomState;
+import CommunicateControl.MsgThreadAsyn;
+import CommunicateControl.MsgThreadAsynHolder;
 import CommunicateControl.ObjThreadAsyn;
+import GameEngine.GameEngine;
+import GameEngine.GameEngineHolder;
+import GameEngineImplements.CommonGameEngine;
 import GameState.GameResult.GameResult;
 import Message.Common.Message;
 import Message.MessageProcessor.MessageProcessor;
@@ -12,15 +15,11 @@ import Message.MessageProcessor.MessageProcessorCollection;
 import Message.RoomMessage.*;
 import Message.UpdateMessage.MUpdatePlayersReply;
 import Message.UpdateMessage.MUpdateRoomsReply;
-import GameEngine.GameEngine;
-import GameEngine.GameEngineHolder;
-import GameEngineImplements.CommonGameEngine;
-import ServerSingletons.ServerDB;
 import ServerBase.ServerThread;
-import ServerSingletons.ServerRoomManager;
 import ServerSingletons.ServerBasicManager;
+import ServerSingletons.ServerDB;
+import ServerSingletons.ServerRoomManager;
 
-import java.awt.*;
 import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Timer;
@@ -113,7 +112,6 @@ public class ServerRoomHandler extends ServerThread implements MsgThreadAsynHold
         }catch (Exception ex){
             ex.printStackTrace();
         }finally {
-
             System.out.println(this+" Broadcast for finish");
             ServerBasicManager.getInstance().broadcast(new MUpdateRoomsReply(true,"OK",null,ServerRoomManager.getInstance().fetchAllRoomState()));
             ServerBasicManager.getInstance().broadcast(new MUpdatePlayersReply(true,"OK",null,ServerDB.getInstance().fetchAllPlayerState()));

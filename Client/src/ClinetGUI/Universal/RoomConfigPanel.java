@@ -6,7 +6,6 @@ import GameState.GameConfig.RoomConfig;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 
 public class RoomConfigPanel extends JPanel {
     private JTextField roomNameTextField =new JTextField();
@@ -16,7 +15,7 @@ public class RoomConfigPanel extends JPanel {
         private final SpinnerNumberModel numberModel;
         public RoomConfigItemSpinnerPanel(String text, int value, int min, int max){
             super(new BorderLayout());
-            textLabel=new ColoredLabel(text,new Color(255, 136, 29),25,15,new Color(255,255,255));
+            textLabel=new ColoredLabel(text,new Color(255, 136, 29),25,15,new Color(255,255,255),5);
             valueSpinner=new JSpinner();
 
             numberModel=new SpinnerNumberModel(value,min,max,1);
@@ -51,7 +50,7 @@ public class RoomConfigPanel extends JPanel {
         JPanel panel;
 
         panel=new JPanel(new BorderLayout());
-        panel.add(new ColoredLabel(" 房间名字 ",new Color(255, 136, 29),20,10,new Color(255,255,255)),BorderLayout.WEST);
+        panel.add(new ColoredLabel(" 房间名字 ",new Color(255, 136, 29),20,10,new Color(255,255,255),5),BorderLayout.WEST);
         panel.add(roomNameTextField);
         add(panel);
 
@@ -64,7 +63,7 @@ public class RoomConfigPanel extends JPanel {
         add(holePairCount);
 
         panel=new JPanel(new BorderLayout());
-        panel.add(new ColoredLabel(" 游戏类型 ",new Color(255, 136, 29),20,10,new Color(255,255,255)),BorderLayout.WEST);
+        panel.add(new ColoredLabel(" 游戏类型 ",new Color(255, 136, 29),20,10,new Color(255,255,255),5),BorderLayout.WEST);
         panel.add(gameTypeJComboBox);
         gameTypeJComboBox.addItem(GameType.GluttonousSnake);
         gameTypeJComboBox.addItem(GameType.TankBattle);

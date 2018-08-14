@@ -1,14 +1,12 @@
 package ServerSingletons;
 
+import BasicState.RoomState;
 import CommunicateControl.MsgThreadAsyn;
 import GameState.GameConfig.RoomConfig;
-import BasicState.RoomState;
 import ServerHandler.ServerRoomHandler;
 
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerRoomManager {
@@ -20,8 +18,8 @@ public class ServerRoomManager {
 
     private ServerRoomManager() {}
 
-    private Hashtable<String,ServerRoomHandler> roomStateStorage=new Hashtable<>();//roomName to roomState
-    private Hashtable<String,String> roomPlayerStorage=new Hashtable<>();//account to roomName
+    private HashMap<String,ServerRoomHandler> roomStateStorage=new HashMap<>();//roomName to roomState
+    private HashMap<String,String> roomPlayerStorage=new HashMap<>();//account to roomName
     private ReentrantReadWriteLock roomStateLock=new ReentrantReadWriteLock();
     public String tryBuildRoomAndJoin(String account, RoomConfig roomConfig,MsgThreadAsyn msgThreadAsyn){
         try{
@@ -80,16 +78,16 @@ public class ServerRoomManager {
         }
     }
     public String tryDismissRoom(String roomName){
-        System.out.println("try to dismiss \033[1;35m"+roomName+"\033[0m");
+        System.out.println("try to dismiss \033[1;35m "+roomName+"\033[0m");
         try{
             roomStateLock.writeLock().lockInterruptibly();
             if(!roomStateStorage.containsKey(roomName))
                 return "不存在该房间名";
-            if(roomStateStorage.get(roomName).getRoomState().players.isEmpty()){
+            if(roomStateStorage.get(roomName).getRoomState().getPlayers().isEmpty()){
                 roomStateStorage.remove(roomName).finish();
                 return null;
             }else {
-                return "房间非空";
+                return "房间非空:"+roomStateStorage.get(roomName).getRoomState().getPlayers().toString();
             }
         }catch (InterruptedException ex){
             ex.printStackTrace();
@@ -109,14 +107,9 @@ public class ServerRoomManager {
         }
     }
     public boolean checkPlayerFreeOfRoom(String account){
-        System.out.println("try to check Player Free");
         try{
             roomStateLock.readLock().lockInterruptibly();
-            if(roomPlayerStorage.containsKey(account)) {
-                System.out.println(this+" found player in "+roomPlayerStorage.get(account));
-                return false;
-            }
-            return true;
+            return !roomPlayerStorage.containsKey(account);
         }catch (InterruptedException ex) {
             ex.printStackTrace();
             return false;

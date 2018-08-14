@@ -2,8 +2,7 @@ package GameState.GridObjects;
 
 import Direction.Direction;
 import GameState.GridObjects.Manager.ColorManager;
-
-import java.awt.*;
+import GameState.Proxy.CanvasProxy;
 
 public class GridSnake implements GridMapObject {
     public String account;
@@ -23,7 +22,7 @@ public class GridSnake implements GridMapObject {
     }
 
     @Override
-    public void draw(Graphics g, int x, int y, int GridWidth, int GridHeight,String myAccount,int flashControl) {
+    public void draw(CanvasProxy g, int x, int y, int GridWidth, int GridHeight, String myAccount, int flashControl) {
         if(myAccount.equals(account)){
             if(isDead&&flashControl%2==0)
                 return;
@@ -51,49 +50,49 @@ public class GridSnake implements GridMapObject {
         }else if(to==null) {//头
             switch (from){
                 case LEFT:
-                    g.fillRoundRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.8)), ((int)(GridHeight*0.6)), ((int) (0.1 * GridWidth)), ((int) (0.1 * GridHeight)));
+                    g.fillRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.3)), ((int)(GridWidth*0.8)), GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case RIGHT:
-                    g.fillRoundRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.8)), ((int)(GridHeight*0.6)), ((int) (0.1 * GridWidth)), ((int) (0.1 * GridHeight)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.3)), ((int)(GridWidth*0.8)), GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case DOWN:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.8)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight+GridHeight*0.2)),GridWidth-((int)(GridWidth*0.3))*2, ((int)(GridHeight*0.8)));
                     break;
                 case UP:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.8)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight)), GridWidth-((int)(GridWidth*0.3))*2, ((int)(GridHeight*0.8)));
                     break;
             }
             g.fillRoundRect(x * GridWidth, y * GridHeight, GridWidth, GridHeight, ( GridWidth),  ( GridHeight));
         }else {
             switch (from){
                 case LEFT:
-                    g.fillRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.5)), ((int)(GridHeight*0.6)));
+                    g.fillRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.3)), ((int)(GridWidth*0.5)), GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case RIGHT:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.5)), ((int)(y * GridHeight+GridHeight*0.2)), (GridWidth-(int)(GridWidth*0.5)), ((int)(GridHeight*0.6)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.5)), ((int)(y * GridHeight+GridHeight*0.3)), (GridWidth-(int)(GridWidth*0.5)),GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case DOWN:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.5)), ((int)(GridWidth*0.6)), (GridHeight-(int)(GridHeight*0.5)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight+GridHeight*0.5)), GridWidth-((int)(GridWidth*0.3))*2, (GridHeight-(int)(GridHeight*0.5)));
                     break;
                 case UP:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight)), GridWidth-((int)(GridWidth*0.3))*2, ((int)(GridHeight*0.5)));
                     break;
             }
             switch (to){
                 case LEFT:
-                    g.fillRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.5)), ((int)(GridHeight*0.6)));
+                    g.fillRect(((int)(x * GridWidth)), ((int)(y * GridHeight+GridHeight*0.3)), ((int)(GridWidth*0.5)), GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case RIGHT:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.5)), ((int)(y * GridHeight+GridHeight*0.2)), (GridWidth-(int)(GridWidth*0.5)), ((int)(GridHeight*0.6)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.5)), ((int)(y * GridHeight+GridHeight*0.3)), (GridWidth-(int)(GridWidth*0.5)), GridHeight-((int)(GridHeight*0.3))*2);
                     break;
                 case DOWN:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.5)), ((int)(GridWidth*0.6)), (GridHeight-(int)(GridHeight*0.5)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight+GridHeight*0.5)), GridWidth-((int)(GridWidth*0.3))*2, (GridHeight-(int)(GridHeight*0.5)));
                     break;
                 case UP:
-                    g.fillRect(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.5)));
+                    g.fillRect(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight)),GridWidth-((int)(GridWidth*0.3))*2, ((int)(GridHeight*0.5)));
                     break;
             }
-            g.fillArc(((int)(x * GridWidth+GridWidth*0.2)), ((int)(y * GridHeight+GridHeight*0.2)), ((int)(GridWidth*0.6)), ((int)(GridHeight*0.6)),0,360);
+            g.fillArc(((int)(x * GridWidth+GridWidth*0.3)), ((int)(y * GridHeight+GridHeight*0.3)), GridWidth-((int)(GridWidth*0.3))*2,GridHeight-((int)(GridHeight*0.3))*2,0,360);
         }
     }
     public String toString(){

@@ -1,13 +1,14 @@
 package ClinetGUI.GameRoomPanel.RoomPanelComponents;
 
 
+import ClientEngine.ClientEngine;
+import ClientEngine.ClientEngineHolder;
 import ClientEngine.Configs.ClientConfig;
-import ClientEngine.Configs.ClientConfigHolder;
 import ClientEngine.Configs.GameControlConfig;
 import ClientEngine.GameControler.ControlConfigChangeNotifier;
+import ClientEngine.GameControler.GameDirectionKeyControler;
 import ClinetGUI.GameRoomPanel.EnterLobbyNotifier;
-import GameEngine.ClientEngine;
-import GameEngine.ClientEngineHolder;
+import ClinetGUI.Universal.CanvasProxy_AWTGraphics;
 import GameState.GridMap;
 import GameState.GridMapControl.GridMapReader;
 import GameState.GridObjects.GridMapObject;
@@ -62,6 +63,16 @@ public class GridDisplayPanel extends JPanel implements ClientEngineHolder,Contr
         this.gridMapReader = gridMapReader;
     }
 
+    @Override
+    public void addDirectionControler(GameDirectionKeyControler keyListener) {
+        addKeyListener(keyListener);
+    }
+
+    @Override
+    public void removeDirectionControler(GameDirectionKeyControler keyListener) {
+        removeKeyListener(keyListener);
+    }
+
     private int flashControl=0;
     @Override
     public void paint(Graphics g) {
@@ -70,7 +81,7 @@ public class GridDisplayPanel extends JPanel implements ClientEngineHolder,Contr
                 GridMap localMap = gridMapReader.getGridMapCopy();
                 if(localMap==null) {
                     //basic background
-                    BufferedImage defaultBack = ImageIO.read(getClass().getResource("/images/01.jpg"));
+                    BufferedImage defaultBack = ImageIO.read(getClass().getResource("/images/defaultBackground.png"));
                     g.drawImage(defaultBack.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH), 0, 0, this);
                 }else{
                     Image buffer = createImage(getWidth(), getHeight());
@@ -101,9 +112,10 @@ public class GridDisplayPanel extends JPanel implements ClientEngineHolder,Contr
                             }
                         }
                     }
+                    CanvasProxy_AWTGraphics canvasProxy_awtGraphics=new CanvasProxy_AWTGraphics(bufferedGraphics);
                     for (int y = 0; y < localMap.height; y++) {
                         for (int x = 0; x < localMap.width; x++) {
-                            localMap.gridMapObjects.get(x + y * localMap.width).draw(bufferedGraphics, x, y, GridWidth, GridHeight,clientConfig.getAccount(),flashControl);
+                            localMap.gridMapObjects.get(x + y * localMap.width).draw(canvasProxy_awtGraphics, x, y, GridWidth, GridHeight,clientConfig.getAccount(),flashControl);
                         }
                     }
                     bufferedGraphics.dispose();
@@ -112,7 +124,7 @@ public class GridDisplayPanel extends JPanel implements ClientEngineHolder,Contr
                 }
             } else {
                 //basic background
-                BufferedImage defaultBack = ImageIO.read(getClass().getResource("/images/01.jpg"));
+                BufferedImage defaultBack = ImageIO.read(getClass().getResource("/images/defaultBackground.png"));
                 g.drawImage(defaultBack.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH), 0, 0, this);
             }
         } catch (Exception ex) {

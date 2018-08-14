@@ -4,6 +4,7 @@ import ClientEngine.Configs.ClientConfigHolder;
 import CommunicateControl.MsgThreadAsynHolder;
 import GameState.GameResult.GameResult;
 import GameState.GridObjects.Manager.ColorManager;
+import GameState.Proxy.ColorProxy;
 import Message.Common.MessageReply;
 import Message.RoomMessage.MChat;
 import Message.RoomMessage.MPauseBroadcast;
@@ -111,7 +112,8 @@ public class ChatPanel  extends JPanel {
     }
     public void appendChat(MChat mChat){
         MutableAttributeSet keyAttr=new SimpleAttributeSet();
-        StyleConstants.setForeground(keyAttr, ColorManager.getInstance().getColor(clientConfigHolder.getClientConfig().getAccount()));
+        ColorProxy colorProxy=ColorManager.getInstance().getColor(clientConfigHolder.getClientConfig().getAccount());
+        StyleConstants.setForeground(keyAttr, new Color(colorProxy.r,colorProxy.g,colorProxy.b,colorProxy.a));
         StyleConstants.setBold(keyAttr,false);
         appendText(mChat.account+"\n("+mChat.time.format(DateTimeFormatter.ISO_DATE_TIME)+"):\n",keyAttr);
         StyleConstants.setBold(keyAttr,true);

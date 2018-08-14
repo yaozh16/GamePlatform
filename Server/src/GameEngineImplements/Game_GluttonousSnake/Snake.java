@@ -262,7 +262,7 @@ public class Snake {
             ((GridSnake)(gridMap.getGridMapObject(each))).markDead();
         }
         if(headInHolePos!=null){
-            ((GridHole)gridMap.getGridMapObject(headFromHolePos)).markDead();
+            ((GridHole)gridMap.getGridMapObject(headInHolePos)).markDead();
         }
         if(headFromHolePos!=null){
             ((GridHole)gridMap.getGridMapObject(headFromHolePos)).markDead();

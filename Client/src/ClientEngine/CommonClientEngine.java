@@ -10,8 +10,6 @@ import CommunicateControl.ObjThreadAsyn;
 import CommunicateControl.ObjThreadAsynHolder;
 import Direction.Direction;
 import Direction.DirectionWriter;
-import GameEngine.ClientEngine;
-import GameEngine.ClientEngineHolder;
 import GameState.GridMap;
 import GameState.GridMapControl.GridMapReader;
 import Message.RoomMessage.MConnect;
@@ -103,14 +101,14 @@ public class CommonClientEngine implements ClientEngine,ObjThreadAsynHolder<Grid
                     gameDirectionKeyControler = null;
             }
             if (gameDirectionKeyControler != null)
-                clientEngineHolder.addKeyListener(gameDirectionKeyControler);
+                clientEngineHolder.addDirectionControler(gameDirectionKeyControler);
         }
         clientEngineHolder.requestFocus();
     }
     public void notifyControlConfigChange(){
         synchronized (gameControlConfig) {
             if(this.gameDirectionKeyControler!=null) {
-                clientEngineHolder.removeKeyListener(gameDirectionKeyControler);
+                clientEngineHolder.removeDirectionControler(gameDirectionKeyControler);
             }
             switch (gameControlConfig.getGameControlerType()){
                 case ULDR:
@@ -126,7 +124,7 @@ public class CommonClientEngine implements ClientEngine,ObjThreadAsynHolder<Grid
                     gameDirectionKeyControler=null;
             }
             if(gameDirectionKeyControler!=null)
-                clientEngineHolder.addKeyListener(gameDirectionKeyControler);
+                clientEngineHolder.addDirectionControler(gameDirectionKeyControler);
         }
 
         clientEngineHolder.requestFocus();
@@ -170,7 +168,7 @@ public class CommonClientEngine implements ClientEngine,ObjThreadAsynHolder<Grid
             objThreadAsyn=null;
         }
         if(gameDirectionKeyControler!=null){
-            clientEngineHolder.removeKeyListener(gameDirectionKeyControler);
+            clientEngineHolder.removeDirectionControler(gameDirectionKeyControler);
             gameDirectionKeyControler=null;
         }
         if(writer!=null){

@@ -1,7 +1,8 @@
 package GameState.GridObjects.Manager;
 
-import java.awt.*;
-import java.time.LocalDateTime;
+
+import GameState.Proxy.ColorProxy;
+
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
@@ -21,25 +22,25 @@ public class ColorManager {
     }
 
 
-    private final Hashtable<String,Color> colorHashtable=new Hashtable<>();
-    private final Hashtable<String,Color> reservedColorTable=new Hashtable<>();
+    private final Hashtable<String,ColorProxy> colorHashtable=new Hashtable<>();
+    private final Hashtable<String,ColorProxy> reservedColorTable=new Hashtable<>();
     private final HashSet<String> illegalName=new HashSet<>();
-    public synchronized Color getColor(String account){
+    public synchronized ColorProxy getColor(String account){
         if(!colorHashtable.containsKey(account)){
             Random r=new Random(account.hashCode());
             int[] bytes=new int[3];
-            Color c=null;
+            ColorProxy c=null;
             while(c==null||colorHashtable.contains(c)){
                 for(int i=0;i<3;i++){
                     bytes[i]=r.nextInt(256);
                 }
-                c=new Color(r.nextInt(256),r.nextInt(256),r.nextInt(256));
+                c=new ColorProxy(r.nextInt(256), r.nextInt(256), r.nextInt(256));
             }
             colorHashtable.put(account,c);
         }
         return colorHashtable.get(account);
     }
-    public boolean registerIllegalColor(String name,Color color){
+    public boolean registerIllegalColor(String name,ColorProxy color){
         if(reservedColorTable.containsKey(name)||reservedColorTable.contains(color))
             return false;
         reservedColorTable.put(name,color);

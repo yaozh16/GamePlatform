@@ -1,7 +1,6 @@
 package ClinetGUI.GameRoomPanel.RoomPanelComponents;
 
 import ClinetGUI.Universal.ColoredButton;
-import ClinetGUI.Universal.ColoredLabel;
 import ClinetGUI.Universal.MessageBox;
 import ClinetGUI.Universal.ScrollDisplayLabel;
 import javazoom.jl.player.Player;
@@ -11,7 +10,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Hashtable;
@@ -19,15 +19,15 @@ import java.util.Hashtable;
 public class MusicPanel extends JPanel{
     Player player=null;
     Thread playerThread=null;
-    private ColoredButton startStopButton =new ColoredButton("音乐开始",new Color(8, 188, 42),10,10,Color.WHITE);
-    private ColoredButton changeButton=new ColoredButton("音乐切换",new Color(6, 166, 188),10,10,Color.WHITE);
+    private ColoredButton startStopButton =new ColoredButton("音乐开始",new Color(8, 188, 42),30,30,Color.WHITE,5);
+    private ColoredButton changeButton=new ColoredButton("音乐切换",new Color(6, 166, 188),30,30,Color.WHITE,5);
 
     private Hashtable<String,URL> musicPaths=new Hashtable<>();
     private JComboBox<String> musicFileNameComboBox=new JComboBox<>();
     private String selected=null;
 
-    private ScrollDisplayLabel musicScrollLabel=new ScrollDisplayLabel(4,100);
-    private ColoredButton chooseLocalFileButton=new ColoredButton("添加本地音乐",new Color(188, 35, 170),10,10,Color.WHITE);
+    private ScrollDisplayLabel musicScrollLabel=new ScrollDisplayLabel(4,100,5);
+    private ColoredButton chooseLocalFileButton=new ColoredButton("添加本地音乐",new Color(188, 35, 170),30,30,Color.WHITE,5);
     public MusicPanel(){
         setLayout(new GridLayout(0,1,10,10));
         initChoice();
@@ -38,7 +38,7 @@ public class MusicPanel extends JPanel{
         add(musicFileNameComboBox);
         add(musicScrollLabel);
         add(chooseLocalFileButton);
-
+        setBackground(new Color(219, 194, 216,200));
         startStopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -124,7 +124,7 @@ public class MusicPanel extends JPanel{
             }
             playerThread=null;
             player=null;
-            startStopButton.setColor(new Color(8, 188, 42));
+            startStopButton.setBackground(new Color(8, 188, 42));
             startStopButton.setText("音乐开始");
         }
         musicScrollLabel.pauseScroll();
@@ -174,7 +174,7 @@ public class MusicPanel extends JPanel{
                     }
                 });
                 playerThread.start();
-                startStopButton.setColor(new Color(200,10,10));
+                startStopButton.setBackground(new Color(200,10,10));
                 startStopButton.setText("停止音乐");
                 musicScrollLabel.startScroll(fileName);
             }

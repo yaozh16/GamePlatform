@@ -8,7 +8,9 @@ import Message.VisitorMessage.MSignupReply;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 public class ClientConfig implements Serializable {
     private volatile String serverAddress;
@@ -17,16 +19,20 @@ public class ClientConfig implements Serializable {
     private volatile String password;
     private volatile String validateCode;
 
-
     public synchronized Socket setUpSocket(){
         System.out.println("build new Socket");
-        Socket socket=null;
         try{
-            socket=new Socket(serverAddress,serverPort);
+            Socket socket = new Socket();
+            SocketAddress socketAddress = new InetSocketAddress(serverAddress, serverPort);
+            socket.connect(socketAddress, 1000);
+            if(socket.isConnected())
+                return socket;
+            else
+                return null;
         }catch (Exception ex){
             ex.printStackTrace();
+            return null;
         }finally {
-            return socket;
         }
     }
 
